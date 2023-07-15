@@ -19,6 +19,30 @@ Player::Player(sf::Texture* spriteSheet) : animation(spriteSheet){
     playerCurrentSprite.setPosition(400, 360);
 
 
+    // Establecer Hitbox del sprite
+    sf::FloatRect spriteBounds = playerCurrentSprite.getLocalBounds();
+    this->SpriteHitbox.setSize(sf::Vector2f(spriteBounds.width, spriteBounds.height));
+    SpriteHitbox.setFillColor(sf::Color::Transparent);
+    SpriteHitbox.setOutlineColor(sf::Color::Red);
+    SpriteHitbox.setOutlineThickness(2.0f);    
+
+    //Establecer hitbox del cuerpo
+    this->BodyHitbox.setSize(sf::Vector2f(spriteBounds.width / 2.0f, spriteBounds.height / 1.7f));
+    BodyHitbox.setFillColor(sf::Color::Transparent);
+    BodyHitbox.setOutlineColor(sf::Color::Red);
+    BodyHitbox.setOutlineThickness(2.0f);
+
+    // Establecer Hitbox de los pies
+    this->FeetHitbox.setSize(sf::Vector2f(spriteBounds.width, 45));
+    FeetHitbox.setFillColor(sf::Color::Transparent);
+    FeetHitbox.setOutlineColor(sf::Color::Green);
+    FeetHitbox.setOutlineThickness(2.0f);
+
+    //Establecer Hitbox de los puños
+    this->PunchHitbox.setSize(sf::Vector2f(45, 45));
+    PunchHitbox.setFillColor(sf::Color::Transparent);
+    PunchHitbox.setOutlineColor(sf::Color::Blue);
+    PunchHitbox.setOutlineThickness(2.0f);
     //Definición de los frames de cada animación, son vectores que serán pasados a animation para que los guarde
 
     #define TOP_IDLE 73
@@ -81,6 +105,13 @@ void Player::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	// Draw dibujara la variable "playerCurrentSprite" que es la que es alterada en la animación
     target.draw(playerCurrentSprite, states);
+
+    // Dibujar hitboxes para visualizarlas
+    target.draw(BodyHitbox, states);
+    target.draw(FeetHitbox, states);
+    target.draw(SpriteHitbox, states);
+    if (animation.isPunching)
+        target.draw(PunchHitbox, states);
 }
 
 void Player::update(float deltaTime)
@@ -139,5 +170,19 @@ void Player::update(float deltaTime)
         }
     }
 
+    //Actualizacion de las hitboxes y el movimiento
+
     playerCurrentSprite.move(movement);
+    sf::Vector2f position = playerCurrentSprite.getPosition();
+    sf::FloatRect spriteBounds = playerCurrentSprite.getLocalBounds();
+    BodyHitbox.setPosition(position.x + 50, position.y + 50);
+    FeetHitbox.setPosition(position.x, position.y + spriteBounds.height - FeetHitbox.getGlobalBounds().height);
+    SpriteHitbox.setPosition(position);
+
+    if (animation.isPunching){
+        if (faceLeft)
+            PunchHitbox.setPosition(position.x - 10, position.y + 130);
+        else
+            PunchHitbox.setPosition(position.x + 200, position.y + 130);
+    }
 }
