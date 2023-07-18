@@ -10,16 +10,14 @@ StageBuilder::StageBuilder()
 
 void StageBuilder::setDebugRoom(Stage& stage)
 {
-    sf::Texture spritesheet_pj;
-    if (!spritesheet_pj.loadFromFile("src/images/spritesheet.png"))
+    std::unique_ptr<sf::Texture> spritesheet_pj = std::make_unique<sf::Texture>();
+    if (!spritesheet_pj->loadFromFile("src/images/spritesheet.png"))
         std::cout << "Error loading texture" << std::endl;
 
-    // Por algún motivo el jugador es renderizado como un enorme cuadro blanco
-    // Sospecho que tiene que ver con la vida util de la textura, pero no estoy seguro
-    // Mañana (17 de julio) buscaré una solución, estoy cansado y no doy mas
-    
+    std::cout << "Debugroom texture loaded" << std::endl;
     std::shared_ptr<Player> player = std::make_shared<Player>(spritesheet_pj, sf::Vector2f(640, 320));
-
+    std::cout << "Debugroom player created" << std::endl;
     stage.loadPlayer(player);
+    std::cout << "Debugroom player loaded" << std::endl;
 	stage.isStage = true;
 }

@@ -10,7 +10,6 @@ class AnimationSprite
 {
 private:
     sf::Sprite* entityCurrentSprite;
-    sf::Texture spriteSheet;
     std::vector<sf::IntRect> vectorIdleFrames;
     std::vector<sf::IntRect> vectorRunFrames;
     std::vector<sf::IntRect> vectorPunchFrames;
@@ -20,7 +19,7 @@ public:
     bool isPunching = false;
 public:
 
-    AnimationSprite(sf::Texture spriteSheet);
+    AnimationSprite();
 
     void setIdleAnimation(std::vector<sf::IntRect> vectorIdleFrames);
 

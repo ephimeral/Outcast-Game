@@ -3,14 +3,30 @@
 #include "animation.h"
 #include <iostream>
 
+struct Frame{
+    int pixelLeftOrigin;
+    int topPixel;
+    int width;
+    int height;
+    int pixelesDistanciaFrame;
+    int totalFrames;
+};
 
-Player::Player(sf::Texture spriteSheet, sf::Vector2f position) : animation(spriteSheet){
+void setFrames(std::vector<sf::IntRect>& vectorFrames, Frame& frame)
+{
+    for (int i = 0; i < frame.totalFrames; i++, frame.pixelLeftOrigin += frame.pixelesDistanciaFrame)
+    {
+        vectorFrames[i] = sf::IntRect(frame.pixelLeftOrigin, frame.topPixel, frame.width, frame.height);
+    } 
+}
+
+Player::Player(std::unique_ptr<sf::Texture>& spriteSheet, sf::Vector2f position) : animation(){
 
 
 	//Inicialización del player, establecer su textura principal y su posición en la pantalla
-
-    currentSprite.setTexture(spriteSheet);
-    currentSprite.setTextureRect(sf::IntRect(15, 10, 38, 22));
+    this->texture = std::move(spriteSheet);
+    currentSprite.setTexture(*texture);
+    currentSprite.setTextureRect(sf::IntRect(15, 10, 22, 38));
     currentSprite.setPosition(position);
 
 
@@ -37,44 +53,19 @@ Player::Player(sf::Texture spriteSheet, sf::Vector2f position) : animation(sprit
 
     //Definición de los frames de cada animación, son vectores que serán pasados a animation para que los guarde
 
-    #define TOP_IDLE 10
-    #define HEIGHT_IDLE 38
-    #define WIDTH_IDLE 22
+    Frame frameIdleFrames{15, 10, 22, 38, 49, 5};
+    std::vector<sf::IntRect> idleFrames(5);
+    setFrames(idleFrames, frameIdleFrames);
 
-    const int TOTAL_IDLE_FRAMES = 5;
 
-    std::vector<sf::IntRect> idleFrames(TOTAL_IDLE_FRAMES);
+    Frame frameRunFrames{13, 56, 41, 38, 42, 4};
+    std::vector<sf::IntRect> runFrames(4);
+    setFrames(runFrames, frameRunFrames);
 
-    for (int i = 0, pixelOrigen = 15, pixelesDistanciaFrame = 49; i < TOTAL_IDLE_FRAMES; i++, pixelOrigen += pixelesDistanciaFrame)
-    {
-        idleFrames[i] = sf::IntRect(pixelOrigen, TOP_IDLE, HEIGHT_IDLE, WIDTH_IDLE);
-    } 
 
-    #define TOP_RUN 56
-    #define HEIGHT_RUN 38
-    #define WIDTH_RUN 41
-
-    const int TOTAL_RUN_FRAMES = 4;
-
-    std::vector<sf::IntRect> runFrames(TOTAL_RUN_FRAMES);
-
-    for (int i = 0, pixelOrigen = 13, pixelesDistanciaFrame = 42; i < TOTAL_RUN_FRAMES; i++, pixelOrigen += pixelesDistanciaFrame)
-    {
-        runFrames[i] = sf::IntRect(pixelOrigen, TOP_RUN, HEIGHT_RUN, WIDTH_RUN);
-    } 
-
-    #define TOP_PUNCH 116
-    #define HEIGHT_PUNCH 35
-    #define WIDTH_PUNCH 37
-
-    const int TOTAL_PUNCH_FRAMES = 15;
-
-    std::vector<sf::IntRect> punchFrames(TOTAL_PUNCH_FRAMES);
-
-    for (int i = 0, pixelOrigen = 11, pixelesDistanciaFrame = 49; i < TOTAL_PUNCH_FRAMES; i++, pixelOrigen += pixelesDistanciaFrame)
-    {
-        punchFrames[i] = sf::IntRect(pixelOrigen, TOP_IDLE, HEIGHT_IDLE, WIDTH_IDLE);
-    } 
+    Frame framePunchFrames{11, 116, 37, 35, 49, 15};
+    std::vector<sf::IntRect> punchFrames(15);
+    setFrames(punchFrames, framePunchFrames);
 
 
     animation.setIdleAnimation(idleFrames);
@@ -93,8 +84,8 @@ void Player::draw(sf::RenderTarget& target, sf::RenderStates states) const
     target.draw(currentSprite, states);
 
     // Dibujar hitboxes para visualizarlas
-    // target.draw(BodyHitbox, states);
-    // target.draw(FeetHitbox, states);
+    target.draw(BodyHitbox, states);
+    target.draw(FeetHitbox, states);
     if (animation.isPunching)
         target.draw(PunchHitbox, states);
 }

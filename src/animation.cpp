@@ -1,14 +1,13 @@
 #include "animation.h"
 #include <SFML/Graphics.hpp>
 
-AnimationSprite::AnimationSprite(sf::Texture spriteSheet)
-{
-    this->spriteSheet = spriteSheet;
-}
-
 
 // Estas funciones de inicialización guardaran los frames en la clase
 // En un futuro esto será re-escrito para que sea una sola función
+
+AnimationSprite::AnimationSprite()
+{
+}
 
 void AnimationSprite::setIdleAnimation(std::vector<sf::IntRect> vectorIdleFrames)
 {
@@ -48,7 +47,7 @@ void AnimationSprite::idleUpdate(float deltaTime, bool faceLeft)
         sf::IntRect currentImage = vectorIdleFrames[indexImage]; //Establece cual es el frame que debemos dibujar
 
         if (!faceLeft){
-            currentImage.left = currentImage.left + 167; // Este numerito mágico es la cantidad de pixeles que se deberá mover 
+            currentImage.left = currentImage.left + 21; // Este numerito mágico es la cantidad de pixeles que se deberá mover 
             currentImage.width = -abs(currentImage.width);// el left del IntRect para que luego sea volteada la imagen usando el valor absoluto negativo
         }
         else{
@@ -80,7 +79,7 @@ void AnimationSprite::runUpdate(float deltaTime, bool faceLeft)
         sf::IntRect currentImage = vectorRunFrames[indexImage];
 
         if (!faceLeft){
-            currentImage.left = currentImage.left + 269;
+            currentImage.left = currentImage.left + 38;
             currentImage.width = -abs(currentImage.width);
         }
         else{
@@ -110,7 +109,7 @@ void AnimationSprite::punchUpdate(float deltaTime, bool faceLeft)
       sf::IntRect currentImage = vectorPunchFrames[indexImage];
 
       if (!faceLeft){
-        currentImage.left = currentImage.left + 248;
+        currentImage.left = currentImage.left + 37;
         currentImage.width = -abs(currentImage.width);
         }
 
