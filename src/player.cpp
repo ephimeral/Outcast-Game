@@ -31,7 +31,8 @@ Player::Player(std::unique_ptr<sf::Texture>& spriteSheet, sf::Vector2f position)
 
 
     // Calcular bounds del sprite
-    sf::FloatRect spriteBounds = currentSprite.getLocalBounds();   
+    sf::FloatRect spriteBounds = currentSprite.getLocalBounds();
+    std::cout << spriteBounds.width << " height:" << spriteBounds.height << std::endl;
 
     //Establecer hitbox del cuerpo
     this->BodyHitbox.setSize(sf::Vector2f(spriteBounds.width / 2.0f, spriteBounds.height / 1.7f));
@@ -40,13 +41,13 @@ Player::Player(std::unique_ptr<sf::Texture>& spriteSheet, sf::Vector2f position)
     BodyHitbox.setOutlineThickness(2.0f);
 
     // Establecer Hitbox de los pies
-    this->FeetHitbox.setSize(sf::Vector2f(spriteBounds.width, 45));
+    this->FeetHitbox.setSize(sf::Vector2f(spriteBounds.width, spriteBounds.height / 5.5f));
     FeetHitbox.setFillColor(sf::Color::Transparent);
     FeetHitbox.setOutlineColor(sf::Color::Green);
     FeetHitbox.setOutlineThickness(2.0f);
 
     //Establecer Hitbox de los puños
-    this->PunchHitbox.setSize(sf::Vector2f(45, 45));
+    this->PunchHitbox.setSize(sf::Vector2f(spriteBounds.width / 5.0f, spriteBounds.height / 5.0f));
     PunchHitbox.setFillColor(sf::Color::Transparent);
     PunchHitbox.setOutlineColor(sf::Color::Blue);
     PunchHitbox.setOutlineThickness(2.0f);
@@ -72,7 +73,6 @@ Player::Player(std::unique_ptr<sf::Texture>& spriteSheet, sf::Vector2f position)
     animation.setRunAnimation(runFrames);
     animation.setPunchAnimation(punchFrames);
     animation.setEntityCurrentSprite(&currentSprite);
-    std::cout << "Player created" << std::endl;
 }; 
 
 Player::~Player () { std::cout << "Player destroyed" << std::endl;} 
@@ -150,13 +150,13 @@ void Player::update(float deltaTime)
     sf::Vector2f position = currentSprite.getPosition();
     sf::FloatRect spriteBounds = currentSprite.getLocalBounds();
 
-    BodyHitbox.setPosition(position.x + 50, position.y + 50);
-    FeetHitbox.setPosition(position.x, position.y + spriteBounds.height - FeetHitbox.getGlobalBounds().height);
+    BodyHitbox.setPosition(position.x + spriteBounds.width / 4.0f, position.y + spriteBounds.height / 5.0f);
+    FeetHitbox.setPosition(position.x, position.y + spriteBounds.height / 1.3f);
 
     if (animation.isPunching){
         if (faceLeft)
-            PunchHitbox.setPosition(position.x - 10, position.y + 130);
+            PunchHitbox.setPosition(position.x - spriteBounds.width / 5.0f, position.y + spriteBounds.height / 2.0f);
         else
-            PunchHitbox.setPosition(position.x + 200, position.y + 130);
+            PunchHitbox.setPosition(position.x + spriteBounds.width / 3.0f, position.y + spriteBounds.height / 2.0f);
     }
 }
