@@ -2,13 +2,20 @@
 #include <SFML/Graphics.hpp>
 
 
-// Estas funciones de inicialización guardaran los frames en la clase
-// En un futuro esto será re-escrito para que sea una sola función
 
+
+            // Constructor - Destructor //
 AnimationSprite::AnimationSprite()
 {
 }
 
+AnimationSprite::~AnimationSprite()
+{
+}
+
+
+
+            // Setters //
 void AnimationSprite::setIdleAnimation(std::vector<sf::IntRect> vectorIdleFrames)
 {
     this->vectorIdleFrames = vectorIdleFrames;
@@ -25,7 +32,7 @@ void AnimationSprite::setPunchAnimation(std::vector<sf::IntRect> vectorPunchFram
 }
 
 void AnimationSprite::setEntityCurrentSprite(sf::Sprite* entityCurrentSprite) // Aca le pasamos un pointer, porque lo que queremos es alterar
-{																			  // el sprite que le pasaron
+{																			  // el sprite pasado
     this->entityCurrentSprite = entityCurrentSprite;
 }
 

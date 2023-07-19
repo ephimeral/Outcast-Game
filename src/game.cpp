@@ -3,72 +3,36 @@
 #include <utility>
 #include <memory>
 #include <iostream>
-        // if (checkCollision(player.FeetHitbox, wall.body))
-        // {
-        //     // Variables de tamaño y posición de las hitboxes y sprites
-        //     sf::Vector2f shape1Position = player.FeetHitbox.getPosition();
-        //     sf::Vector2f shape2Position = wall.body.getPosition();
-        //     sf::Vector2f shape1Size = player.FeetHitbox.getSize();
-        //     sf::FloatRect boundingBox1 = player.FeetHitbox.getGlobalBounds();
-        //     sf::FloatRect boundingBox2 = wall.body.getGlobalBounds();
-        //     sf::Vector2f spriteSize = player.SpriteHitbox.getSize();
-        //     sf::Vector2f shape2Size = wall.body.getSize();
-
-        //     double offsetX = (boundingBox1.left + boundingBox1.width / 2.0) - (boundingBox2.left + boundingBox2.width / 2.0);
-        //     double offsetY = (boundingBox1.top + boundingBox1.height / 2.0) - (boundingBox2.top + boundingBox2.height / 2.0);
-
-        //     double intersectX = abs(offsetX) - (shape1Size.x / 2.0 + shape2Size.x / 2.0);
-        //     double intersectY = abs(offsetY) - (shape1Size.y / 2.0 + shape2Size.y / 2.0);
-
-        //     // Verificar si la intersección en el eje X es mayor que la intersección en el eje Y
-        //     if (intersectX > intersectY) {
-        //         // Verificar la dirección de la colisión en el eje X y ajustar la posición de la hitbox del pie
-        //         if (offsetX > 0) {
-        //             player.FeetHitbox.setPosition(shape2Position.x + boundingBox2.width + shape1Size.x / 2, shape1Position.y);
-        //         } else {
-        //             player.FeetHitbox.setPosition(shape2Position.x - boundingBox1.width - shape1Size.x / 2, shape1Position.y);
-        //         }
-        //     } else {
-        //         // Verificar la dirección de la colisión en el eje Y y ajustar la posición de la hitbox del pie
-        //         if (offsetY > 0) {
-        //             player.FeetHitbox.setPosition(shape1Position.x, shape2Position.y + boundingBox2.height + shape1Size.y); // <- Esta es la única
-        //                                                                                         // Colisión funcional (al pasar por debajo del muro)
-        //                                                                                         // Mañana hago el resto
-        //         } else {
-        //             player.FeetHitbox.setPosition(shape1Position.x, shape2Position.y - boundingBox1.height - shape1Size.y / 2);
-        //         }
-        //     }
-
-        //     // Ajustar la posición del sprite del jugador para corregir la colisión
-        //     sf::Vector2f playerPosition = player.playerCurrentSprite.getPosition();
-        //     sf::Vector2f playerFeetPosition = sf::Vector2f(playerPosition.x, shape1Position.y + shape1Size.y);
-        //     sf::Vector2f playerFeetOffset = playerFeetPosition - playerPosition;
-        //     player.playerCurrentSprite.setPosition(player.FeetHitbox.getPosition() - playerFeetOffset);
-        // }
 
 
+
+
+        // Constructor - Destructor //
 Game::Game()
 : gameWindow(sf::VideoMode(1280, 720), "Outcast Game is going Bitches"),
 stageBuilder()
 {
-	this->gameWindow.setFramerateLimit(60);
+    this->gameWindow.setFramerateLimit(60);
 
 }
 
+Game::~Game() {}
 
-void Game::run()
+        // Funciones de flujo //
+
+void Game::run() // Primera función en ser llamada, inicia el juego //
 {
-	float deltaTime = 0.0f;
+    float deltaTime = 0.0f;
     sf::Clock clock;
     sf::Event event;
 
     // Crear un objeto Stage
     std::unique_ptr<Stage> stage = std::make_unique<Stage>();
-
     stageBuilder.setDebugRoom(*stage); // Establecer el stage a "debugroom"
 
     // Mover el pointer stage a currentStage
     currentStage = std::move(stage);
+
     while (gameWindow.isOpen())
     {
 
@@ -81,33 +45,112 @@ void Game::run()
         }
 
         if (currentStage->isStage) //Comprobar si estamos en un stage o un menu antes de ejecutar las colisiones
-	        checkCollisions();
+            checkCollisions();
+
         gameUpdate(deltaTime);
 
         gameRender();
     }
 }
 
-void Game::checkCollisions()
+void Game::gameUpdate(float deltaTime) // Actualiza todas las entidades del stage
+{
+    for (auto& entity : currentStage->getEntities())
+    {
+        entity->update(deltaTime);
+    }
+}
+
+void Game::gameRender() // Renderiza todas las entidades del stage
+{
+    gameWindow.clear();
+
+    for (auto& entity : currentStage->getEntities())
+    {
+        gameWindow.draw(*entity);
+    }
+
+    gameWindow.display();
+}
+
+
+
+        // Funciones de inicialización de Stage //
+
+void Game::loadStage()
 {
 }
 
-void Game::gameUpdate(float deltaTime)
+void Game::unloadStage()
 {
-	for (auto& entity : currentStage->getEntities())
-	{
-		entity->update(deltaTime);
-	}
 }
 
-void Game::gameRender()
+
+        // Funciones de Colisión //
+
+
+void Game::checkCollisions() // Revisa todas las colisiones del stage al iterar en las entidades del stage
 {
-	gameWindow.clear();
+    for (auto& entity : currentStage->getMovableEntities())
+    {
+        if (entity->animation.isPunching)
+        {
+            checkHurtboxCollision(*entity);
+        }
 
-	for (auto& entity : currentStage->getEntities())
-	{
-		gameWindow.draw(*entity);
-	}
+        for (auto& worldObject : currentStage->getWorldObjects())
+        {
+            if (checkCollision(*(entity->getFeetHitbox()),worldObject->getObjectHitbox()))
+            {
+                resolveCollision(*(entity->getFeetHitbox()), worldObject->getObjectHitbox(), *entity);
+            }
+        }
+    }
+}
 
-	gameWindow.display();
+void Game::checkHurtboxCollision(Entity& entity) // Esta función es para comprobar las colisiones entre
+{                                                // las hitbox de los golpes y todas las BodyHitbox del stage
+    for (auto& entityHurtbox : currentStage->getMovableEntities())
+    {
+        if(checkCollision(*(entity.getPunchHitbox()), *(entityHurtbox->getBodyHitbox())))
+        {
+            // Resolve collision
+        }
+    }
+}
+
+bool Game::checkCollision(const sf::RectangleShape& box1, const sf::RectangleShape& box2) {
+    return box1.getGlobalBounds().intersects(box2.getGlobalBounds());
+}
+
+void Game::resolveCollision(sf::RectangleShape& box1, const sf::RectangleShape& box2, Entity& player) // Resuelve la colisión entre
+{                                                                                                     // Una entidad movible y un objeto estático
+    sf::FloatRect boundingBox1 = box1.getGlobalBounds();
+    sf::FloatRect boundingBox2 = box2.getGlobalBounds();
+
+    sf::Vector2f playerPosition = player.getCurrentPosition();
+
+    sf::Vector2f playerFeetPosition = sf::Vector2f(playerPosition.x, boundingBox1.top + boundingBox1.height);
+    sf::Vector2f playerFeetOffset = playerFeetPosition - playerPosition;
+
+    float intersectionDepthX = std::min(boundingBox1.left + boundingBox1.width - boundingBox2.left, boundingBox2.left + boundingBox2.width - boundingBox1.left);
+    float intersectionDepthY = std::min(boundingBox1.top + boundingBox1.height - boundingBox2.top, boundingBox2.top + boundingBox2.height - boundingBox1.top);
+
+    if (intersectionDepthX < intersectionDepthY) {
+        if (boundingBox1.left + boundingBox1.width / 2.0f < boundingBox2.left + boundingBox2.width / 2.0f) {
+            box1.move(-intersectionDepthX, 0.0f);
+            player.setCurrentPosition(playerPosition - sf::Vector2f(intersectionDepthX, 0.0f));
+        } else {
+            box1.move(intersectionDepthX, 0.0f);
+            player.setCurrentPosition(playerPosition + sf::Vector2f(intersectionDepthX, 0.0f));
+        }
+    } else {
+        if (boundingBox1.top + boundingBox1.height / 2.0f < boundingBox2.top + boundingBox2.height / 2.0f) {
+            box1.move(0.0f, -intersectionDepthY);
+            player.setCurrentPosition(playerPosition - sf::Vector2f(0.0f, intersectionDepthY));
+        } else {
+            box1.move(0.0f, intersectionDepthY);
+            player.setCurrentPosition(playerPosition + sf::Vector2f(0.0f, intersectionDepthY));
+        }
+    }
 }

@@ -13,13 +13,23 @@ private:
 	sf::RenderWindow 	   gameWindow;
 
 public:
+			// Constructor - Destructor //
 	Game();
+	~Game();
+
+
+			// Funciones de flujo //
 	void run();
-	void loadStage();
-	void unloadStage();
-	void checkCollisions();
-	void checkWorldCollisions();
-	void checkCombatCollisions();
 	void gameUpdate(float deltaTime);
 	void gameRender();
+
+			// Funciones de inicialización (Placeholders, aun sin implementación) //
+	void loadStage();
+	void unloadStage();
+
+			// Funciones de colision //
+	void checkCollisions();
+	void checkHurtboxCollision(Entity& entity);
+	void resolveCollision(sf::RectangleShape& box1, const sf::RectangleShape& box2, Entity& player);
+	bool checkCollision(const sf::RectangleShape& box1, const sf::RectangleShape& box2);
 };

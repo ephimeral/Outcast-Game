@@ -4,6 +4,10 @@
 #include <utility>
 #include <iostream>
 
+
+
+        // Constructores - Destructores //
+
 Stage::Stage()
 {
 }
@@ -14,12 +18,15 @@ Stage::Stage(sf::Texture& mapTexture)
 	this->mapTexture = mapTexture;
 }
 
-
-
-void Stage::loadTextureMap()
+Stage::~Stage()
 {
 }
 
+
+        // Load functions //
+void Stage::loadTextureMap()
+{
+}
 
 void Stage::loadPlayer(std::shared_ptr<Player>& player)
 {
@@ -27,36 +34,35 @@ void Stage::loadPlayer(std::shared_ptr<Player>& player)
     addEntities(player);
 }
 
-
 void Stage::loadEnemies()
 {
 }
 
-
-void Stage::loadWorldObjects()
+void Stage::loadWorldObjects(std::shared_ptr<WorldObject> worldObject)
 {
+    this->worldObjects.push_back(worldObject);
+    addEntities(worldObject);
 }
-
 
 void Stage::addEntities(std::shared_ptr<Entity>& entity)
 {
     this->entities.push_back(entity);
 }
 
+void Stage::addEntities(std::shared_ptr<WorldObject>& worldObject)
+{
+    this->entities.push_back(worldObject);
+}
 
 void Stage::addEntities(std::shared_ptr<Player>& player)
 {
     this->entities.push_back(player);
-}
-
-void Stage::setEnemiesPosition()
-{
+    this->movableEntities.push_back(player);
 }
 
 
-void Stage::setWorldObjectsPosition()
-{
-}
+
+        // Getters //
 
 
 std::vector<std::shared_ptr<Entity>> Stage::getEntities() const
@@ -69,29 +75,12 @@ std::shared_ptr<Player> Stage::getPlayer() const
 	return this->player;
 }
 
+std::vector<std::shared_ptr<Entity>> Stage::getMovableEntities() const
+{
+    return this->movableEntities;
+}
 
-// std::vector<Enemy> Stage::getEnemies()
-// {
-// 	return this->enemies;
-// }
-
-
-// std::vector<WorldObjects> Stage::getWorldObjects()
-// {
-
-// }
-
-
-// std::vector<sf::Vector2f> Stage::getWorldStaticHitboxesCoordinates()
-// {
-// }
-
-
-// std::vector<sf::Vector2f> Stage::getHurtboxesCoordinates()
-// {
-// }
-
-
-// std::vector<sf::Vector2f> Stage::getDamageBoxesCoordinates()
-// {
-// }
+std::vector<std::shared_ptr<WorldObject>> Stage::getWorldObjects() const
+{
+    return this->worldObjects;
+}

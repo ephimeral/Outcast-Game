@@ -1,14 +1,23 @@
+# Variables
+INCLUDE_DIR = src/include
+LIB_DIR = src/lib
+OBJECTS = main.o game.o stagebuilder.o stage.o player.o animation.o entity.o worldobject.o
+EXECUTABLE = debug-outcastgame
 
+# Regla principal
 all: compile link
 
-compile:
-	g++ -I src/include -c main.cpp -o main.o
-	g++ -I src/include -c src/game.cpp -o game.o
-	g++ -I src/include -c src/stagebuilder.cpp -o stagebuilder.o
-	g++ -I src/include -c src/stage.cpp -o stage.o
-	g++ -I src/include -c src/player.cpp -o player.o
-	g++ -I src/include -c src/animation.cpp -o animation.o
-	g++ -I src/include -c src/entity.cpp -o entity.o
+# Regla para compilar los archivos fuente
+compile: $(OBJECTS)
 
-link:
-	g++ main.o game.o stage.o stagebuilder.o player.o animation.o entity.o -o debug-outcastgame -Lsrc/lib -lwinmm -lsfml-system -lsfml-window -lsfml-graphics
+# Regla genérica para compilar los archivos fuente
+%.o: src/%.cpp
+	g++ -I $(INCLUDE_DIR) -c $< -o $@
+
+# Regla para enlazar los objetos y crear el ejecutable
+link: $(OBJECTS)
+	g++ $(OBJECTS) -o $(EXECUTABLE) -L $(LIB_DIR) -lsfml-system -lsfml-window -lsfml-graphics
+
+# Regla para limpiar los archivos objeto y el ejecutable
+clean:
+	rm -f $(OBJECTS) $(EXECUTABLE)

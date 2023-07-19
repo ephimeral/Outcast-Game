@@ -32,7 +32,6 @@ Player::Player(std::unique_ptr<sf::Texture>& spriteSheet, sf::Vector2f position)
 
     // Calcular bounds del sprite
     sf::FloatRect spriteBounds = currentSprite.getLocalBounds();
-    std::cout << spriteBounds.width << " height:" << spriteBounds.height << std::endl;
 
     //Establecer hitbox del cuerpo
     this->BodyHitbox.setSize(sf::Vector2f(spriteBounds.width / 2.0f, spriteBounds.height / 1.7f));
@@ -82,7 +81,6 @@ void Player::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
 	// Draw dibujara la variable "currentSprite" que es la que es alterada en la animación
     target.draw(currentSprite, states);
-
     // Dibujar hitboxes para visualizarlas
     target.draw(BodyHitbox, states);
     target.draw(FeetHitbox, states);
@@ -150,6 +148,7 @@ void Player::update(float deltaTime)
     sf::Vector2f position = currentSprite.getPosition();
     sf::FloatRect spriteBounds = currentSprite.getLocalBounds();
 
+
     BodyHitbox.setPosition(position.x + spriteBounds.width / 4.0f, position.y + spriteBounds.height / 5.0f);
     FeetHitbox.setPosition(position.x, position.y + spriteBounds.height / 1.3f);
 
@@ -159,4 +158,31 @@ void Player::update(float deltaTime)
         else
             PunchHitbox.setPosition(position.x + spriteBounds.width / 3.0f, position.y + spriteBounds.height / 2.0f);
     }
+}
+
+
+
+sf::RectangleShape* Player::getFeetHitbox()
+{
+    return &this->FeetHitbox;
+}
+
+sf::RectangleShape* Player::getPunchHitbox()
+{
+    return &this->PunchHitbox;
+}
+
+sf::RectangleShape* Player::getBodyHitbox()
+{
+    return &this->BodyHitbox;
+}
+
+void Player::setCurrentPosition(sf::Vector2f position)
+{
+    this->currentSprite.setPosition(position);
+}
+
+sf::Vector2f Player::getCurrentPosition()
+{
+    return this->currentSprite.getPosition();
 }
