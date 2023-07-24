@@ -1,17 +1,19 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
-#include "stage.h"
+
 #include "stagebuilder.h"
-#include <memory>
+
+class Stage;
 
 class Game
 {
 private:
-	StageBuilder 	 	   stageBuilder;
-	std::unique_ptr<Stage> currentStage;
 	sf::RenderWindow 	   gameWindow;
 
+public:
+	StageBuilder 	 	   stageBuilder;
+	std::unique_ptr<Stage> currentStage;
 public:
 			// Constructor - Destructor //
 	Game();
@@ -29,7 +31,7 @@ public:
 
 			// Funciones de colision //
 	void checkCollisions();
-	void checkHurtboxCollision(Entity& entity);
-	void resolveCollision(sf::RectangleShape& box1, const sf::RectangleShape& box2, Entity& player);
+	void checkHurtboxCollision(MovableEntity& entity);
+	void resolveCollision(sf::RectangleShape& box1, const sf::RectangleShape& box2, MovableEntity& entity);
 	bool checkCollision(const sf::RectangleShape& box1, const sf::RectangleShape& box2);
 };

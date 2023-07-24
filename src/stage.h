@@ -1,21 +1,24 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include "staticentity.h"
 #include "player.h"
-#include "entity.h"
-#include "worldobject.h"
+#include "event.h"
 #include <memory>
 #include <utility>
 
+
+
+// Posible performance boost al utilizar semanticas de movimiento enves de smart pointers
+// En un futuro lo haré, ahora no tengo ganas
 class Stage
 {
 private:
-	std::shared_ptr<Player>	  					  player;
 	sf::Texture  			  					  mapTexture;
 	sf::Sprite 				  					  mapSprite;
-	//std::vector<std::shared_ptr<Enemy>> 	      enemies;
-	std::vector<std::shared_ptr<Entity>>		  movableEntities;
-	std::vector<std::shared_ptr<Entity>>		  entities;
-	std::vector<std::shared_ptr<WorldObject>>     worldObjects;
+	std::unique_ptr<Player>						  player;
+	std::vector<MovableEntity>		  			  movableEntities;
+	std::vector<StaticEntity>					  staticEntities;
+	std::vector<std::unique_ptr<Event>>			  events;
 
 public:
 	bool isStage;
@@ -26,30 +29,19 @@ public:
 	Stage(sf::Texture& mapTexture);
 	~Stage();
 
-						// Funciones Loaders //
-	// Estas funciones son las encargadas de definir los miembros de "Stage"
-	// Son construidas en el StageBuilder
-
-	void loadTextureMap();
-	void loadPlayer(std::shared_ptr<Player>& player);
-	void loadEnemies();
-	void loadWorldObjects(std::shared_ptr<WorldObject> worldObject);
 
 						// Setters //
 	
-	void addEntities(std::shared_ptr<Entity>& entity);
-	void addEntities(std::shared_ptr<Player>& player);
-	void addEntities(std::shared_ptr<WorldObject>& worldObject);
-	// void addEntities(std::shared_ptr<Enemy> enemy);
+	void addMovableEntity(MovableEntity&& movableEntity);
+	void addPlayer(std::unique_ptr<Player>&& player);
+	void addEvent(std::unique_ptr<Event>& event);
+	void addStaticEntity(StaticEntity&& staticEntity);
 
 
 						// Getters //
 
-	std::shared_ptr<Player>							getPlayer() const;
-	//std::vector<Enemy> 							getEnemies() const;
-	std::vector<std::shared_ptr<Entity>>			getEntities() const;
-	std::vector<std::shared_ptr<Entity>>			getMovableEntities() const;
-	std::vector<std::shared_ptr<WorldObject>> 		getWorldObjects() const;
-
-
+	std::vector<StaticEntity>&				getStaticEntities();
+	std::unique_ptr<Player>&				getPlayer();
+	std::vector<MovableEntity>&				getMovableEntities();
+	std::vector<std::unique_ptr<Event>>&	getEvents();				
 };

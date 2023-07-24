@@ -1,6 +1,5 @@
 #include <SFML/Graphics.hpp>
 #include "stage.h"
-#include "player.h"
 #include <utility>
 #include <iostream>
 
@@ -24,63 +23,47 @@ Stage::~Stage()
 
 
         // Load functions //
-void Stage::loadTextureMap()
+
+    
+void Stage::addPlayer(std::unique_ptr<Player>&& player)
 {
+    this->player = std::move(player);
 }
 
-void Stage::loadPlayer(std::shared_ptr<Player>& player)
+void Stage::addMovableEntity(MovableEntity&& entity)
 {
-    this->player = player;
-    addEntities(player);
+    this->movableEntities.push_back(std::move(entity));
 }
 
-void Stage::loadEnemies()
+void Stage::addEvent(std::unique_ptr<Event>& event)
 {
+    this->events.push_back(std::move(event));
 }
 
-void Stage::loadWorldObjects(std::shared_ptr<WorldObject> worldObject)
+void Stage::addStaticEntity(StaticEntity&& staticEntity)
 {
-    this->worldObjects.push_back(worldObject);
-    addEntities(worldObject);
-}
-
-void Stage::addEntities(std::shared_ptr<Entity>& entity)
-{
-    this->entities.push_back(entity);
-}
-
-void Stage::addEntities(std::shared_ptr<WorldObject>& worldObject)
-{
-    this->entities.push_back(worldObject);
-}
-
-void Stage::addEntities(std::shared_ptr<Player>& player)
-{
-    this->entities.push_back(player);
-    this->movableEntities.push_back(player);
+    this->staticEntities.push_back(std::move(staticEntity));   
 }
 
 
+                    // Getters //
 
-        // Getters //
-
-
-std::vector<std::shared_ptr<Entity>> Stage::getEntities() const
+std::vector<StaticEntity>&  Stage::getStaticEntities()
 {
-	return this->entities;
+    return this->staticEntities;
 }
 
-std::shared_ptr<Player> Stage::getPlayer() const
-{
-	return this->player;
-}
-
-std::vector<std::shared_ptr<Entity>> Stage::getMovableEntities() const
+std::vector<MovableEntity>& Stage::getMovableEntities()
 {
     return this->movableEntities;
 }
 
-std::vector<std::shared_ptr<WorldObject>> Stage::getWorldObjects() const
+std::vector<std::unique_ptr<Event>>& Stage::getEvents()
 {
-    return this->worldObjects;
+    return this->events;
+}
+
+std::unique_ptr<Player>& Stage::getPlayer()
+{
+    return this->player;
 }

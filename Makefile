@@ -1,7 +1,7 @@
 # Variables
 INCLUDE_DIR = src/include
 LIB_DIR = src/lib
-OBJECTS = main.o game.o stagebuilder.o stage.o player.o animation.o entity.o worldobject.o
+OBJECTS = main.o game.o stagebuilder.o stage.o movablentity.o player.o animation.o event.o eventfactory.o staticentity.o 
 EXECUTABLE = debug-outcastgame
 
 # Regla principal

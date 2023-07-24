@@ -3,108 +3,117 @@
 #include "animation.h"
 #include <iostream>
 
-struct Frame{
-    int pixelLeftOrigin;
-    int topPixel;
-    int width;
-    int height;
-    int pixelesDistanciaFrame;
-    int totalFrames;
-};
 
-void setFrames(std::vector<sf::IntRect>& vectorFrames, Frame& frame)
+Player::Player(std::unique_ptr<sf::Texture>& spriteSheet, sf::Vector2f& position, Frame& idleFrames, Frame& runFrames, Frame& punchFrames) : 
+animation(this)
 {
-    for (int i = 0; i < frame.totalFrames; i++, frame.pixelLeftOrigin += frame.pixelesDistanciaFrame)
-    {
-        vectorFrames[i] = sf::IntRect(frame.pixelLeftOrigin, frame.topPixel, frame.width, frame.height);
-    } 
-}
-
-Player::Player(std::unique_ptr<sf::Texture>& spriteSheet, sf::Vector2f position) : animation(){
-
-
-	//Inicialización del player, establecer su textura principal y su posición en la pantalla
-    this->texture = std::move(spriteSheet);
+    texture = std::move(spriteSheet);
     currentSprite.setTexture(*texture);
-    currentSprite.setTextureRect(sf::IntRect(15, 10, 22, 38));
+    currentSprite.setTextureRect(sf::IntRect(idleFrames.pixelLeftOrigin, idleFrames.topPixel, idleFrames.width, idleFrames.height));
     currentSprite.setPosition(position);
 
 
-    // Calcular bounds del sprite
+                // HITBOXES, GENERALES //
     sf::FloatRect spriteBounds = currentSprite.getLocalBounds();
 
-    //Establecer hitbox del cuerpo
-    this->BodyHitbox.setSize(sf::Vector2f(spriteBounds.width / 2.0f, spriteBounds.height / 1.7f));
+    BodyHitbox.setSize(sf::Vector2f(spriteBounds.width / 2.0f, spriteBounds.height / 1.7f));
     BodyHitbox.setFillColor(sf::Color::Transparent);
     BodyHitbox.setOutlineColor(sf::Color::Red);
     BodyHitbox.setOutlineThickness(2.0f);
 
-    // Establecer Hitbox de los pies
-    this->FeetHitbox.setSize(sf::Vector2f(spriteBounds.width, spriteBounds.height / 5.5f));
+    FeetHitbox.setSize(sf::Vector2f(spriteBounds.width, spriteBounds.height / 5.5f));
     FeetHitbox.setFillColor(sf::Color::Transparent);
     FeetHitbox.setOutlineColor(sf::Color::Green);
     FeetHitbox.setOutlineThickness(2.0f);
 
-    //Establecer Hitbox de los puños
-    this->PunchHitbox.setSize(sf::Vector2f(spriteBounds.width / 5.0f, spriteBounds.height / 5.0f));
+    PunchHitbox.setSize(sf::Vector2f(spriteBounds.width / 5.0f, spriteBounds.height / 5.0f));
     PunchHitbox.setFillColor(sf::Color::Transparent);
     PunchHitbox.setOutlineColor(sf::Color::Blue);
     PunchHitbox.setOutlineThickness(2.0f);
 
-    //Definición de los frames de cada animación, son vectores que serán pasados a animation para que los guarde
 
-    Frame frameIdleFrames{15, 10, 22, 38, 49, 5};
-    std::vector<sf::IntRect> idleFrames(5);
-    setFrames(idleFrames, frameIdleFrames);
+                 // Frames //
 
+    std::vector<sf::IntRect> vecIdleFrames(idleFrames.totalFrames); 
+    animation.setFrames(vecIdleFrames, idleFrames);
 
-    Frame frameRunFrames{13, 56, 41, 38, 42, 4};
-    std::vector<sf::IntRect> runFrames(4);
-    setFrames(runFrames, frameRunFrames);
+    std::vector<sf::IntRect> vecRunFrames(runFrames.totalFrames);
+    animation.setFrames(vecRunFrames, runFrames);
 
-
-    Frame framePunchFrames{11, 116, 37, 35, 49, 15};
-    std::vector<sf::IntRect> punchFrames(15);
-    setFrames(punchFrames, framePunchFrames);
+    std::vector<sf::IntRect> vecPunchFrames(punchFrames.totalFrames);
+    animation.setFrames(vecPunchFrames, punchFrames);
 
 
-    animation.setIdleAnimation(idleFrames);
-    animation.setRunAnimation(runFrames);
-    animation.setPunchAnimation(punchFrames);
-    animation.setEntityCurrentSprite(&currentSprite);
-}; 
+    animation.setIdleAnimation(vecIdleFrames);
+    animation.setRunAnimation(vecRunFrames);
+    animation.setPunchAnimation(vecPunchFrames);
 
-Player::~Player () { std::cout << "Player destroyed" << std::endl;} 
+    std::cout << "[OBJECT] Player created" << std::endl;
+}
 
+Player::~Player() { std::cout << "[OBJECT] Player destroyed" << std::endl;}
+Player::Player(){}
+Player::Player(Player&& other) noexcept
+        : speed(other.speed),
+          currentSprite(std::move(other.currentSprite)),
+          texture(std::move(other.texture)),
+          FeetHitbox(std::move(other.FeetHitbox)),
+          BodyHitbox(std::move(other.BodyHitbox)),
+          animation(std::move(other.animation)),
+          PunchHitbox(std::move(other.PunchHitbox)),
+          isMoving(other.isMoving),
+          isPunching(other.isPunching)
+{
+    std::cout << "[MOVE CONSTRUCTOR] Player moved" << std::endl;
+}
+
+Player& Player::operator=(Player&& other) noexcept
+{
+    if (this != &other)
+    {
+        speed = other.speed;
+        currentSprite = std::move(other.currentSprite);
+        texture = std::move(other.texture);
+        animation = std::move(other.animation);
+        FeetHitbox = std::move(other.FeetHitbox);
+        BodyHitbox = std::move(other.BodyHitbox);
+        PunchHitbox = std::move(other.PunchHitbox);
+        isMoving = other.isMoving;
+        isPunching = other.isPunching;
+        std::cout << "[MOVE OPERATOR] Player Moved" << std::endl;
+    }
+    return *this;
+}
+
+                // UPDATE FUNCTION VIRTUAL //
 
 void Player::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-	// Draw dibujara la variable "currentSprite" que es la que es alterada en la animación
+    // Draw dibujara la variable "currentSprite" que es la que es alterada en la animación
     target.draw(currentSprite, states);
-    // Dibujar hitboxes para visualizarlas
+        // DEBUGGING //
     target.draw(BodyHitbox, states);
     target.draw(FeetHitbox, states);
-    if (animation.isPunching)
+    if (isPunching)           
         target.draw(PunchHitbox, states);
 }
 
 void Player::update(float deltaTime)
 {
 
-
     sf::Vector2f movement(0.0f, 0.0f);
     static bool faceLeft = true; // Este bool establece si estamos viendo a la izquierda o la derecha
 
 
-    if (animation.isPunching) // Esto es para bloquear el input de movimiento al golpear
-    {						  // Sientete libre de cambiarlo cuando vayas a hacer el sistema de combate (vas a tener que cambiarlo esto se ve horrible)
+    if (isPunching)
+    {						  
         animation.punchUpdate(deltaTime, faceLeft);
     }
     else //Yandere simulator:
     {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
         {
-            animation.isPunching = true;
+            isPunching = true;
         }
         else
         {
@@ -132,16 +141,17 @@ void Player::update(float deltaTime)
 
             if (movement.x == 0.0f && movement.y == 0.0f)
             {
+                isMoving = false;
                 animation.idleUpdate(deltaTime, faceLeft);
             }
             else
             {
+                isMoving = true;
                 animation.runUpdate(deltaTime, faceLeft);
             }
         }
     }
 
-    //Actualizacion de las hitboxes y el movimiento
 
     currentSprite.move(movement);
 
@@ -152,7 +162,7 @@ void Player::update(float deltaTime)
     BodyHitbox.setPosition(position.x + spriteBounds.width / 4.0f, position.y + spriteBounds.height / 5.0f);
     FeetHitbox.setPosition(position.x, position.y + spriteBounds.height / 1.3f);
 
-    if (animation.isPunching){
+    if (isPunching){
         if (faceLeft)
             PunchHitbox.setPosition(position.x - spriteBounds.width / 5.0f, position.y + spriteBounds.height / 2.0f);
         else
@@ -160,29 +170,32 @@ void Player::update(float deltaTime)
     }
 }
 
-
-
-sf::RectangleShape* Player::getFeetHitbox()
+sf::RectangleShape& Player::getFeetHitbox()
 {
-    return &this->FeetHitbox;
+    return FeetHitbox;
 }
 
-sf::RectangleShape* Player::getPunchHitbox()
+sf::RectangleShape& Player::getPunchHitbox()
 {
-    return &this->PunchHitbox;
+    return PunchHitbox;
 }
 
-sf::RectangleShape* Player::getBodyHitbox()
+sf::RectangleShape& Player::getBodyHitbox()
 {
-    return &this->BodyHitbox;
+    return BodyHitbox;
 }
 
 void Player::setCurrentPosition(sf::Vector2f position)
 {
-    this->currentSprite.setPosition(position);
+    currentSprite.setPosition(position);
 }
 
 sf::Vector2f Player::getCurrentPosition()
 {
-    return this->currentSprite.getPosition();
+    return currentSprite.getPosition();
+}
+
+sf::Sprite& Player::getCurrentSprite()
+{
+    return currentSprite;
 }

@@ -1,35 +1,60 @@
 #include "stagebuilder.h"
 #include "player.h"
-#include "stage.h"
-#include "worldobject.h"
+#include "staticentity.h"
+#include "event.h"
 #include <iostream>
 
-
-StageBuilder::StageBuilder()
+StageBuilder::StageBuilder(Game* game) : game(game)
 {
+    eventFactory = EventFactory(game);
 }
 
 
-		// Placeholder de debugroom //
-// La forma en que se construye un stage es definiendo cuales seran sus entidades y luego pasandoselas a "Stage"
-// Usamos shared_ptr para no perder la referencia al objeto
-// En un futuro cuando estemos armando los stages habrán mas funciones de carga y descarga
-
-void StageBuilder::setDebugRoom(Stage& stage)
+void StageBuilder::createPlayer(Stage& stage, sf::Vector2f position)
 {
-
-    std::unique_ptr<sf::Texture> spritesheet_pj = std::make_unique<sf::Texture>();
-    if (!spritesheet_pj->loadFromFile("src/images/spritesheet.png"))
+    std::unique_ptr<sf::Texture> spriteSheet_pj = std::make_unique<sf::Texture>();
+    if (!spriteSheet_pj->loadFromFile("src/images/spritesheet.png"))
         std::cout << "Error loading texture" << std::endl;
-    std::shared_ptr<Player> player = std::make_shared<Player>(spritesheet_pj, sf::Vector2f(200, 320));
-    stage.loadPlayer(player);
 
+    Frame frameIdleFrames{15, 10, 22, 38, 49, 5}; 
+    Frame frameRunFrames{13, 56, 41, 38, 42, 4}; 
+    Frame framePunchFrames{11, 116, 37, 35, 49, 15};
+    
+    std::unique_ptr<Player> player = std::make_unique<Player>(spriteSheet_pj, position, frameIdleFrames, frameRunFrames, framePunchFrames);
+    stage.addPlayer(std::move(player));
+}
 
+void StageBuilder::createEvent(Stage& stage, sf::Vector2f position, sf::Vector2f size)
+{
+    std::unique_ptr<Event> event = eventFactory.getDebugEvent(position, size);
+    stage.addEvent(event);
+}
+
+void StageBuilder::createWall(Stage& stage, sf::Vector2f position, sf::IntRect size)
+{
     std::unique_ptr<sf::Texture> spritesheet_wall = std::make_unique<sf::Texture>();
     if (!spritesheet_wall->loadFromFile("src/images/wall.jpg"))
         std::cout << "Error loading texture" << std::endl;
-    std::shared_ptr<WorldObject> worldObject = std::make_shared<WorldObject>(spritesheet_wall, sf::Vector2f(200, 200));
-    stage.loadWorldObjects(worldObject);
+    
+    StaticEntity wall(spritesheet_wall, position, size);
+    stage.addStaticEntity(std::move(wall));
+}
+
+void StageBuilder::setDebugRoom(Stage& stage)
+{
+	createPlayer(stage, sf::Vector2f(200, 320));
+    createWall(stage, sf::Vector2f(500,500), sf::IntRect(0, 0, 200, 200));
+    createEvent(stage, sf::Vector2f(100, 100), sf::Vector2f(50, 50));
+
+	stage.isStage = true;
+}
+
+void StageBuilder::setSecondDebugRoom(Stage& stage)
+{
+
+    createPlayer(stage, sf::Vector2f(640,380));
+
+    createWall(stage, sf::Vector2f(100, 200), sf::IntRect(0, 0, 200, 200));
 
 	stage.isStage = true;
 }

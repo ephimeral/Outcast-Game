@@ -1,40 +1,79 @@
 #include "animation.h"
+#include "movablentity.h"
+#include "player.h"
 #include <SFML/Graphics.hpp>
+#include <iostream>
 
 
 
 
             // Constructor - Destructor //
+
+AnimationSprite::AnimationSprite(Player* player)
+{
+    this->player = player;
+    std::cout << "[OBJECT] AnimationSprite created" << std::endl;
+}
 AnimationSprite::AnimationSprite()
 {
+    std::cout << "[OBJECT] Empty constructor - AnimationSprite created" << std::endl;
 }
 
 AnimationSprite::~AnimationSprite()
 {
+    std::cout << "[OBJECT] AnimationSprite destroyed" << std::endl;
+}
+
+AnimationSprite::AnimationSprite(AnimationSprite&& other) noexcept
+    : player(std::move(other.player)),
+      vectorIdleFrames(std::move(other.vectorIdleFrames)),
+      vectorRunFrames(std::move(other.vectorRunFrames)),
+      vectorPunchFrames(std::move(other.vectorPunchFrames)),
+      FRAME_DURATION(other.FRAME_DURATION)
+{
+    std::cout << "[MOVE CONSTRUCTOR] AnimationSprite Moved" << std::endl;
+}
+
+AnimationSprite& AnimationSprite::operator=(AnimationSprite&& other) noexcept
+{
+    if (this != &other)
+    {
+        player = std::move(other.player);
+        vectorIdleFrames = std::move(other.vectorIdleFrames);
+        vectorRunFrames = std::move(other.vectorRunFrames);
+        vectorPunchFrames = std::move(other.vectorPunchFrames);
+        FRAME_DURATION = other.FRAME_DURATION;
+        std::cout << "[MOVE OPERATOR] AnimationSprite Moved" << std::endl;
+    }
+    return *this;
 }
 
 
-
             // Setters //
-void AnimationSprite::setIdleAnimation(std::vector<sf::IntRect> vectorIdleFrames)
+
+void AnimationSprite::setFrames(std::vector<sf::IntRect>& vectorFrames, Frame& frame)
+{
+    for (int i = 0; i < frame.totalFrames; i++, frame.pixelLeftOrigin += frame.pixelesDistanciaFrame)
+    {
+        vectorFrames[i] = sf::IntRect(frame.pixelLeftOrigin, frame.topPixel, frame.width, frame.height);
+    } 
+}
+
+void AnimationSprite::setIdleAnimation(std::vector<sf::IntRect>& vectorIdleFrames)
 {
     this->vectorIdleFrames = vectorIdleFrames;
 }
 
-void AnimationSprite::setRunAnimation(std::vector<sf::IntRect> vectorRunFrames)
+void AnimationSprite::setRunAnimation(std::vector<sf::IntRect>& vectorRunFrames)
 {
     this->vectorRunFrames = vectorRunFrames;
 }
 
-void AnimationSprite::setPunchAnimation(std::vector<sf::IntRect> vectorPunchFrames)
+void AnimationSprite::setPunchAnimation(std::vector<sf::IntRect>& vectorPunchFrames)
 {
     this->vectorPunchFrames = vectorPunchFrames;
 }
 
-void AnimationSprite::setEntityCurrentSprite(sf::Sprite* entityCurrentSprite) // Aca le pasamos un pointer, porque lo que queremos es alterar
-{																			  // el sprite pasado
-    this->entityCurrentSprite = entityCurrentSprite;
-}
 
 
 
@@ -42,98 +81,63 @@ void AnimationSprite::setEntityCurrentSprite(sf::Sprite* entityCurrentSprite) //
 
 //Funciones de update, encargadas de actualizar el "entityCurrentSprite" cada vez que son llamadas
 
-void AnimationSprite::idleUpdate(float deltaTime, bool faceLeft)
+
+void AnimationSprite::updateAnimation(float deltaTime, bool faceLeft, std::vector<sf::IntRect>& vectorFrames, int& indexImage, int frameOffset)
 {
     static float elapsedTime = 0.0f;
-    static int indexImage = 0;
 
     elapsedTime += deltaTime;
 
     if (elapsedTime >= FRAME_DURATION)
     {
-        sf::IntRect currentImage = vectorIdleFrames[indexImage]; //Establece cual es el frame que debemos dibujar
+        sf::IntRect currentImage = vectorFrames[indexImage];
 
-        if (!faceLeft){
-            currentImage.left = currentImage.left + 21; // Este numerito mágico es la cantidad de pixeles que se deberá mover 
-            currentImage.width = -abs(currentImage.width);// el left del IntRect para que luego sea volteada la imagen usando el valor absoluto negativo
+        if (!faceLeft)
+        {
+            currentImage.left += frameOffset;
+            currentImage.width = -abs(currentImage.width);
         }
-        else{
+        else
+        {
             currentImage.left = currentImage.left;
-            currentImage.width = abs(currentImage.width);   
+            currentImage.width = abs(currentImage.width);
         }
-        entityCurrentSprite->setTextureRect(currentImage); // Establecer el frame al sprite
 
-        if (indexImage >= vectorIdleFrames.size() - 1) // Si ya hemos alcanzado el frame final, reiniciar al frame inicial
+        player->currentSprite.setTextureRect(currentImage);
+        if (indexImage >= vectorFrames.size() - 1)
             indexImage = 0;
-        indexImage++;
-
-
-        // No comentaré el resto de las funciones Update porque son basicamente lo mismo
+        else
+            indexImage++;
 
         elapsedTime = 0.0f;
     }
+}
+
+void AnimationSprite::idleUpdate(float deltaTime, bool faceLeft)
+{
+    static int indexImage = 0;
+
+    updateAnimation(deltaTime, faceLeft, vectorIdleFrames, indexImage, 21);
 }
 
 void AnimationSprite::runUpdate(float deltaTime, bool faceLeft)
 {
-    static float elapsedTime = 0.0f;
     static int indexImage = 0;
 
-    elapsedTime += deltaTime;
-
-    if (elapsedTime >= FRAME_DURATION)
-    {
-        sf::IntRect currentImage = vectorRunFrames[indexImage];
-
-        if (!faceLeft){
-            currentImage.left = currentImage.left + 38;
-            currentImage.width = -abs(currentImage.width);
-        }
-        else{
-            currentImage.left = currentImage.left;
-            currentImage.width = abs(currentImage.width);   
-        }
-        entityCurrentSprite->setTextureRect(currentImage);
-
-        if (indexImage >= vectorRunFrames.size() - 1)
-            indexImage = 0;
-
-         elapsedTime = 0.0f;
-        indexImage++;
-    }
+    updateAnimation(deltaTime, faceLeft, vectorRunFrames, indexImage, 38);
 }
 
 void AnimationSprite::punchUpdate(float deltaTime, bool faceLeft)
 {
-    static float elapsedTime = 0.0f;
-    static int indexImage = 0;
 
-    elapsedTime += deltaTime;
+    //BUG: No se muestra correctamente la animación del golpe //
+    static int indexPunchImage = 0;
 
+    updateAnimation(deltaTime, faceLeft, vectorPunchFrames, indexPunchImage, 37);
 
-    if (elapsedTime >= FRAME_DURATION)
-    {
-      sf::IntRect currentImage = vectorPunchFrames[indexImage];
-
-      if (!faceLeft){
-        currentImage.left = currentImage.left + 37;
-        currentImage.width = -abs(currentImage.width);
-        }
-
-      else{
-        currentImage.left = currentImage.left;
-        currentImage.width = abs(currentImage.width);   
-        }
-
-      entityCurrentSprite->setTextureRect(currentImage);
-
-      if (indexImage >= vectorPunchFrames.size() - 1){
-        indexImage = 0;
-        isPunching = false; //Establecer "isPunching" como false para que el usuario pueda moverse
-        }
-
-
-        elapsedTime = 0.0f;
-        indexImage++;
-    }
+    if (indexPunchImage == 0)
+        player->isPunching = false;
 }
+
+
+
